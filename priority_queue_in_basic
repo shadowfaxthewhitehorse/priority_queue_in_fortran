@@ -1,0 +1,63 @@
+REM Priority Queue Implementation in BASIC
+
+DIM queue(100, 2)
+queue_size = 0
+
+REM Function to push an item onto the priority queue
+SUB Push(value, priority)
+    queue_size = queue_size + 1
+    queue(queue_size, 1) = value
+    queue(queue_size, 2) = priority
+    REM Bubble up to maintain priority order
+    current_index = queue_size
+    WHILE current_index > 1 AND queue(current_index, 2) < queue(INT(current_index / 2), 2)
+        REM Swap with parent
+        SWAP queue(current_index, 1), queue(INT(current_index / 2), 1)
+        SWAP queue(current_index, 2), queue(INT(current_index / 2), 2)
+        current_index = INT(current_index / 2)
+    WEND
+END SUB
+
+REM Function to pop the item with the highest priority from the queue
+FUNCTION Pop()
+    IF queue_size = 0 THEN
+        PRINT "Priority queue is empty!"
+        Pop = NULL
+    ELSE
+        popped_value = queue(1, 1)
+        popped_priority = queue(1, 2)
+        REM Move the last item to the root
+        queue(1, 1) = queue(queue_size, 1)
+        queue(1, 2) = queue(queue_size, 2)
+        queue_size = queue_size - 1
+        REM Bubble down to maintain priority order
+        current_index = 1
+        WHILE 2 * current_index <= queue_size
+            child_index = 2 * current_index
+            IF child_index + 1 <= queue_size AND queue(child_index + 1, 2) < queue(child_index, 2) THEN
+                child_index = child_index + 1
+            END IF
+            IF queue(current_index, 2) > queue(child_index, 2) THEN
+                REM Swap with child
+                SWAP queue(current_index, 1), queue(child_index, 1)
+                SWAP queue(current_index, 2), queue(child_index, 2)
+                current_index = child_index
+            ELSE
+                EXIT WHILE
+            END IF
+        WEND
+        Pop = popped_value
+    END IF
+END FUNCTION
+
+REM Example usage:
+
+REM Push items onto the priority queue
+CALL Push(5, 2)
+CALL Push(3, 1)
+CALL Push(8, 3)
+
+REM Pop items from the priority queue
+PRINT "Popped item: "; Pop()
+PRINT "Popped item: "; Pop()
+PRINT "Popped item: "; Pop()
