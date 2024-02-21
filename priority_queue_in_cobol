@@ -1,0 +1,57 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PriorityQueue.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  Item.
+           05 Value    PIC 9(5).
+           05 Priority PIC 9(5)V9(2).
+
+       01  PriorityQueue.
+           05 QueueOccurs      PIC 9(5) VALUE 0.
+           05 QueueItem OCCURS 100 TIMES.
+               10 QueueValue    PIC 9(5).
+               10 QueuePriority PIC 9(5)V9(2).
+
+       PROCEDURE DIVISION.
+
+       *> Push an item onto the priority queue
+           PERFORM PUSH-QUEUE(100, 42.5)
+           PERFORM PUSH-QUEUE(200, 35.8)
+           PERFORM PUSH-QUEUE(300, 90.2)
+
+       *> Pop items from the priority queue
+           PERFORM UNTIL QueueOccurs = 0
+               PERFORM POP-QUEUE
+           END-PERFORM.
+
+           STOP RUN.
+
+       PUSH-QUEUE SECTION USING VALUE PRIORITY.
+
+           ADD 1 TO QueueOccurs
+           MOVE QueueOccurs TO QueueValue (QueueOccurs)
+           MOVE PRIORITY TO QueuePriority (QueueOccurs)
+
+           PERFORM VARYING I FROM QueueOccurs BY -1 UNTIL I = 1
+               IF QueuePriority (I) < QueuePriority (I - 1)
+                   MOVE QueueValue (I) TO Item-Value
+                   MOVE QueuePriority (I) TO Item-Priority
+                   MOVE QueueValue (I - 1) TO QueueValue (I)
+                   MOVE QueuePriority (I - 1) TO QueuePriority (I)
+                   MOVE Item-Value TO QueueValue (I - 1)
+                   MOVE Item-Priority TO QueuePriority (I - 1)
+               ELSE
+                   EXIT PERFORM
+               END-IF
+           END-PERFORM.
+
+       POP-QUEUE SECTION.
+
+           DISPLAY "Popped item: " QueueValue (1) " with priority: " QueuePriority (1)
+           MOVE QueueOccurs - 1 TO QueueOccurs
+           PERFORM VARYING I FROM 1 BY 1 UNTIL I = QueueOccurs
+               MOVE QueueValue (I + 1) TO QueueValue (I)
+               MOVE QueuePriority (I + 1) TO QueuePriority (I)
+           END-PERFORM.
+
