@@ -1,0 +1,124 @@
+module PriorityQueue
+    implicit none
+
+    type :: Item
+        integer :: value
+        real :: priority
+    end type Item
+
+    type :: PriorityQueueType
+        type(Item), dimension(:), allocatable :: items
+        integer :: size
+    end type PriorityQueueType
+
+contains
+
+    subroutine PriorityQueue_init(pq)
+        type(PriorityQueueType), intent(out) :: pq
+        pq%size = 0
+        allocate(pq%items(0))
+    end subroutine PriorityQueue_init
+
+    subroutine PriorityQueue_push(pq, value, priority)
+        type(PriorityQueueType), intent(inout) :: pq
+        integer, intent(in) :: value
+        real, intent(in) :: priority
+
+        pq%size = pq%size + 1
+        allocate(pq%items(pq%size))
+        pq%items(pq%size)%value = value
+        pq%items(pq%size)%priority = priority
+        call PriorityQueue_siftUp(pq, pq%size)
+    end subroutine PriorityQueue_push
+
+    subroutine PriorityQueue_siftUp(pq, index)
+        type(PriorityQueueType), intent(inout) :: pq
+        integer, intent(in) :: index
+
+        integer :: parentIndex
+        type(Item) :: temp
+
+        if (index <= 1) return
+
+        parentIndex = index / 2
+        if (pq%items(parentIndex)%priority > pq%items(index)%priority) then
+            temp = pq%items(parentIndex)
+            pq%items(parentIndex) = pq%items(index)
+            pq%items(index) = temp
+            call PriorityQueue_siftUp(pq, parentIndex)
+        endif
+    end subroutine PriorityQueue_siftUp
+
+    subroutine PriorityQueue_pop(pq, value, priority)
+        type(PriorityQueueType), intent(inout) :: pq
+        integer, intent(out) :: value
+        real, intent(out) :: priority
+
+        if (pq%size == 0) then
+            print *, "Priority queue is empty!"
+            return
+        endif
+
+        value = pq%items(1)%value
+        priority = pq%items(1)%priority
+
+        pq%items(1) = pq%items(pq%size)
+        deallocate(pq%items(pq%size))
+        pq%size = pq%size - 1
+
+        call PriorityQueue_siftDown(pq, 1)
+    end subroutine PriorityQueue_pop
+
+    subroutine PriorityQueue_siftDown(pq, index)
+        type(PriorityQueueType), intent(inout) :: pq
+        integer, intent(in) :: index
+
+        integer :: leftChildIndex, rightChildIndex, minIndex
+        type(Item) :: temp
+
+        leftChildIndex = 2 * index
+        rightChildIndex = 2 * index + 1
+        minIndex = index
+
+        if (leftChildIndex <= pq%size .and. pq%items(leftChildIndex)%priority < pq%items(minIndex)%priority) then
+            minIndex = leftChildIndex
+        endif
+
+        if (rightChildIndex <= pq%size .and. pq%items(rightChildIndex)%priority < pq%items(minIndex)%priority) then
+            minIndex = rightChildIndex
+        endif
+
+        if (minIndex /= index) then
+            temp = pq%items(minIndex)
+            pq%items(minIndex) = pq%items(index)
+            pq%items(index) = temp
+            call PriorityQueue_siftDown(pq, minIndex)
+        endif
+    end subroutine PriorityQueue_siftDown
+
+end module PriorityQueue
+
+program PriorityQueueExample
+    use PriorityQueue
+    implicit none
+
+    type(PriorityQueueType) :: pq
+    integer :: i, value
+    real :: priority
+
+    call PriorityQueue_init(pq)
+
+    ! Push items with random priorities
+    do i = 1, 10
+        value = i
+        priority = rand()
+        call PriorityQueue_push(pq, value, priority)
+    end do
+
+    ! Pop items from the priority queue
+    do while (pq%size > 0)
+        call PriorityQueue_pop(pq, value, priority)
+        print *, "Popped item:", value, "with priority:", priority
+    end do
+
+end program PriorityQueueExample
